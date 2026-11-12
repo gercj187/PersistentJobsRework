@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!--
+		Kleine Zusatz-DLL fuer den Multiplayer-Gleis-Sync.
+		Getrennt von der Haupt-DLL, damit diese auch ohne Multiplayer-Mod laedt.
+		Wird NACH der Haupt-DLL gebaut und startet deshalb auch das Packen (package.ps1).
+	-->
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>PersistentJobsRework.MP</AssemblyName>
+		<RootNamespace>PersistentJobsRework.MP</RootNamespace>
+
+		<DvDir Condition="'$(DvDir)' == ''">S:\SteamLibrary\steamapps\common\Derail Valley</DvDir>
+		<MpApiDll Condition="'$(MpApiDll)' == ''">$(DvDir)\Mods\Multiplayer\MultiplayerAPI.dll</MpApiDll>
+		<CopyToGame Condition="'$(CopyToGame)' == ''">true</CopyToGame>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\PersistentJobsRework\PersistentJobsRework.csproj">
+			<Private>false</Private>
+		</ProjectReference>
+		<Reference Include="MultiplayerAPI"><HintPath>$(MpApiDll)</HintPath><Private>false</Private></Reference>
+		<!-- nur zum Kompilieren (Typen der Haupt-DLL aufloesen) -->
+		<Reference Include="Assembly-CSharp"><HintPath>$(DvDir)\DerailValley_Data\Managed\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="UnityEngine.CoreModule"><HintPath>$(DvDir)\DerailValley_Data\Managed\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+		<PackageReference Include="UnityModManager" Version="0.32.4" />
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="../build/" />
+		<Copy Condition="'$(CopyToGame)' == 'true' And Exists('$(DvDir)\Mods')" SourceFiles="$(TargetPath)" DestinationFolder="$(DvDir)\Mods\PersistentJobsRework\" />
+
+		<Exec Condition="'$(ConfigurationName)' == 'Release' And '$(OS)' == 'Windows_NT'" Command="powershell -executionpolicy bypass -Command &quot;(../package.ps1)&quot;" />
+		<Exec Condition="'$(ConfigurationName)' == 'Release' And '$(OS)' != 'Windows_NT'" Command="pwsh -Command &quot;(../package.ps1)&quot;" />
+	</Target>
+</Project>
