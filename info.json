@@ -1,0 +1,12 @@
+{
+	"Id": "PersistentJobsRework",
+	"Version": "1.00.00",
+	"DisplayName": "Persistent Jobs Rework (TEST)",
+	"Author": "CJ187",
+	"EntryMethod": "PersistentJobsRework.Main.Load",
+	"AssemblyName": "PersistentJobsRework.dll",
+	"ManagerVersion": "0.27.2",
+	"LoadAfter": [ "Multiplayer" ],
+	"HomePage": "https://www.nexusmods.com/derailvalley/mods/1832",
+	"Repository": "https://raw.githubusercontent.com/gercj187/LongerLoadingDelay/refs/heads/main/repository.json"
+}
