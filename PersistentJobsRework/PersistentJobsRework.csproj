@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<AssemblyName>PersistentJobsRework</AssemblyName>
+		<RootNamespace>PersistentJobsRework</RootNamespace>
+		<Nullable>disable</Nullable>
+
+		<!-- Pfade - bei Bedarf anpassen oder per /p:DvDir=... ueberschreiben -->
+		<DvDir Condition="'$(DvDir)' == ''">S:\SteamLibrary\steamapps\common\Derail Valley</DvDir>
+		<DvManaged>$(DvDir)\DerailValley_Data\Managed</DvManaged>
+		<MpApiDll Condition="'$(MpApiDll)' == ''">$(DvDir)\Mods\Multiplayer\MultiplayerAPI.dll</MpApiDll>
+		<!-- nach dem Build direkt in den Mods-Ordner kopieren -->
+		<CopyToGame Condition="'$(CopyToGame)' == ''">true</CopyToGame>
+	</PropertyGroup>
+
+	<!-- Derail Valley -->
+	<ItemGroup>
+		<Reference Include="Assembly-CSharp"><HintPath>$(DvManaged)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="DV.ThingTypes"><HintPath>$(DvManaged)\DV.ThingTypes.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="DV.Utils"><HintPath>$(DvManaged)\DV.Utils.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="DV.Common"><HintPath>$(DvManaged)\DV.Common.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="DV.RailTrack"><HintPath>$(DvManaged)\DV.RailTrack.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="DV.UserManagement"><HintPath>$(DvManaged)\DV.UserManagement.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="Newtonsoft.Json"><HintPath>$(DvManaged)\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+	</ItemGroup>
+
+	<!-- Unity -->
+	<ItemGroup>
+		<Reference Include="UnityEngine"><HintPath>$(DvManaged)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="UnityEngine.CoreModule"><HintPath>$(DvManaged)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="UnityEngine.PhysicsModule"><HintPath>$(DvManaged)\UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="UnityEngine.IMGUIModule"><HintPath>$(DvManaged)\UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+		<Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(DvManaged)\UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+	</ItemGroup>
+
+	<!-- Multiplayer: nur weiche Abhaengigkeit, wird NICHT mitgeliefert -->
+	<ItemGroup>
+		<Reference Include="MultiplayerAPI"><HintPath>$(MpApiDll)</HintPath><Private>false</Private></Reference>
+	</ItemGroup>
+
+	<!-- Mod Loader (bringt Harmony mit) -->
+	<ItemGroup>
+		<PackageReference Include="UnityModManager" Version="0.32.4" />
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="../build/" />
+
+		<!-- direkt ins Spiel kopieren (info.json OHNE BOM wird vom package.ps1 sichergestellt) -->
+		<Copy Condition="'$(CopyToGame)' == 'true' And Exists('$(DvDir)\Mods')" SourceFiles="$(TargetPath);../info.json" DestinationFolder="$(DvDir)\Mods\PersistentJobsRework\" />
+
+		<!-- Packen passiert im Projekt PersistentJobsRework.MP (wird als letztes gebaut) -->
+	</Target>
+</Project>
