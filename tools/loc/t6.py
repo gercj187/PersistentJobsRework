@@ -1,0 +1,211 @@
+# Teil 6: Initialisierung pro Spielstand / harter Neuaufbau
+k("world_init",
+ "Fill the whole world with jobs and cars once per savegame (new career or savegame without this mod)",
+ "Запълни целия свят със задачи и вагони веднъж за запис (нова кариера или запис без този мод)",
+ "每个存档一次性为整个世界生成任务和车厢（新生涯或未使用本模组的存档）",
+ "每個存檔一次性為整個世界產生任務與車廂（新生涯或未使用本模組的存檔）",
+ "Jednou za uloženou hru naplnit celý svět zakázkami a vagony (nová kariéra nebo uložená hra bez tohoto módu)",
+ "Fyld hele verden med jobs og vogne én gang pr. gemt spil (ny karriere eller gemt spil uden dette mod)",
+ "De hele wereld eenmaal per opslag vullen met opdrachten en wagons (nieuwe carrière of opslag zonder deze mod)",
+ "Täytä koko maailma tehtävillä ja vaunuilla kerran tallennusta kohden (uusi ura tai tallennus ilman tätä modia)",
+ "Remplir une fois par sauvegarde tout le monde de missions et de wagons (nouvelle carrière ou sauvegarde sans ce mod)",
+ "Einmal pro Spielstand die ganze Welt mit Aufträgen und Wagen füllen (neue Karriere oder Spielstand ohne diese Mod)",
+ "हर सेव में एक बार पूरी दुनिया को काम और डिब्बों से भरें (नया करियर या इस मॉड के बिना सेव)",
+ "Mentésenként egyszer az egész világ feltöltése munkákkal és kocsikkal (új karrier vagy mentés e mod nélkül)",
+ "Riempi una volta per salvataggio tutto il mondo di incarichi e vagoni (nuova carriera o salvataggio senza questa mod)",
+ "セーブデータごとに一度、ワールド全体にジョブと車両を配置（新規キャリアまたはこのModなしのセーブ）",
+ "저장 파일마다 한 번 월드 전체를 작업과 차량으로 채우기 (새 커리어 또는 이 모드 없는 저장 파일)",
+ "Fyll hele verden med oppdrag og vogner én gang per lagring (ny karriere eller lagring uten denne moden)",
+ "Raz na zapis wypełnij cały świat zleceniami i wagonami (nowa kariera lub zapis bez tego moda)",
+ "Preencher uma vez por gravação todo o mundo com trabalhos e vagões (nova carreira ou gravação sem este mod)",
+ "Preencher uma vez por save o mundo todo com trabalhos e vagões (nova carreira ou save sem este mod)",
+ "Umple o dată pe salvare întreaga lume cu sarcini și vagoane (carieră nouă sau salvare fără acest mod)",
+ "Один раз на сохранение заполнить весь мир заданиями и вагонами (новая карьера или сохранение без этого мода)",
+ "Raz na uloženú hru naplniť celý svet zákazkami a vozňami (nová kariéra alebo uložená hra bez tohto módu)",
+ "Llenar una vez por partida guardada todo el mundo con trabajos y vagones (carrera nueva o partida sin este mod)",
+ "Fyll hela världen med uppdrag och vagnar en gång per sparfil (ny karriär eller sparfil utan denna mod)",
+ "Kayıt başına bir kez tüm dünyayı iş ve vagonla doldur (yeni kariyer veya bu mod olmadan kayıt)",
+ "Один раз на збереження заповнити весь світ завданнями й вагонами (нова кар'єра або збереження без цього мода)")
+
+k("init_state",
+ "This savegame is initialized: {0}","Този запис е инициализиран: {0}","此存档已初始化：{0}","此存檔已初始化：{0}","Tato uložená hra je inicializována: {0}","Dette gemte spil er initialiseret: {0}","Deze opslag is geïnitialiseerd: {0}","Tämä tallennus on alustettu: {0}","Cette sauvegarde est initialisée : {0}","Dieser Spielstand ist initialisiert: {0}","यह सेव आरंभ किया जा चुका है: {0}","Ez a mentés inicializálva: {0}","Questo salvataggio è inizializzato: {0}","このセーブは初期化済み：{0}","이 저장 파일 초기화됨: {0}","Denne lagringen er initialisert: {0}","Ten zapis jest zainicjowany: {0}","Esta gravação está inicializada: {0}","Este save está inicializado: {0}","Această salvare este inițializată: {0}","Это сохранение инициализировано: {0}","Táto uložená hra je inicializovaná: {0}","Esta partida está inicializada: {0}","Denna sparfil är initierad: {0}","Bu kayıt başlatıldı: {0}","Це збереження ініціалізовано: {0}")
+
+k("yes",
+ "yes","да","是","是","ano","ja","ja","kyllä","oui","ja","हाँ","igen","sì","はい","예","ja","tak","sim","sim","da","да","áno","sí","ja","evet","так")
+
+k("no",
+ "no","не","否","否","ne","nej","nee","ei","non","nein","नहीं","nem","no","いいえ","아니요","nei","nie","não","não","nu","нет","nie","no","nej","hayır","ні")
+
+k("btn_reset_init",
+ "Reset initialization and refill the world","Нулирай инициализацията и запълни света отново","重置初始化并重新填充世界","重設初始化並重新填充世界","Resetovat inicializaci a znovu naplnit svět","Nulstil initialisering og fyld verden igen","Initialisatie resetten en de wereld opnieuw vullen","Nollaa alustus ja täytä maailma uudelleen","Réinitialiser et remplir à nouveau le monde","Initialisierung zurücksetzen und Welt neu auffüllen","आरंभ रीसेट करें और दुनिया फिर से भरें","Inicializálás törlése és a világ újratöltése","Azzera l'inizializzazione e riempi di nuovo il mondo","初期化をリセットしてワールドを再配置","초기화 재설정 후 월드 다시 채우기","Tilbakestill initialisering og fyll verden på nytt","Resetuj inicjalizację i wypełnij świat ponownie","Repor a inicialização e voltar a preencher o mundo","Redefinir a inicialização e preencher o mundo de novo","Resetează inițializarea și umple din nou lumea","Сбросить инициализацию и заново заполнить мир","Resetovať inicializáciu a znova naplniť svet","Restablecer la inicialización y volver a llenar el mundo","Återställ initiering och fyll världen igen","Başlatmayı sıfırla ve dünyayı yeniden doldur","Скинути ініціалізацію й заново заповнити світ")
+
+k("btn_hard",
+ "HARD RESET: delete all jobs and parked cars without a locomotive, reset the savegame (rebuilt after saving and reloading)",
+ "ПЪЛНО НУЛИРАНЕ: изтрий всички задачи и паркирани вагони без локомотив, нулирай записа (изгражда се след запис и ново зареждане)",
+ "强制重置：删除所有任务和无机车的停放车厢并重置存档（保存并重新载入后重建）",
+ "強制重設：刪除所有任務與無機車的停放車廂並重設存檔（儲存並重新載入後重建）",
+ "TVRDÝ RESET: smazat všechny zakázky a odstavené vagony bez lokomotivy, resetovat uloženou hru (obnoví se po uložení a novém načtení)",
+ "HÅRD NULSTILLING: slet alle jobs og parkerede vogne uden lokomotiv, nulstil det gemte spil (genopbygges efter gem og genindlæsning)",
+ "HARDE RESET: alle opdrachten en geparkeerde wagons zonder locomotief verwijderen, opslag resetten (wordt opnieuw opgebouwd na opslaan en herladen)",
+ "KOVA NOLLAUS: poista kaikki tehtävät ja seisovat vaunut ilman veturia, nollaa tallennus (rakennetaan uudelleen tallennuksen ja uudelleenlatauksen jälkeen)",
+ "RÉINITIALISATION COMPLÈTE : supprimer toutes les missions et les wagons garés sans locomotive, réinitialiser la sauvegarde (reconstruite après sauvegarde et rechargement)",
+ "HARTER RESET: alle Aufträge und abgestellten Wagen ohne Lok löschen, Spielstand zurücksetzen (Neuaufbau nach Speichern und Neuladen)",
+ "हार्ड रीसेट: सभी काम और बिना इंजन के खड़े डिब्बे हटाएँ, सेव रीसेट करें (सेव करके दोबारा लोड करने पर फिर बनेगा)",
+ "TELJES VISSZAÁLLÍTÁS: minden munka és mozdony nélküli álló kocsi törlése, mentés visszaállítása (mentés és újratöltés után újraépül)",
+ "RESET TOTALE: elimina tutti gli incarichi e i vagoni parcheggiati senza locomotiva, azzera il salvataggio (ricostruito dopo salvataggio e ricaricamento)",
+ "ハードリセット：全ジョブと機関車のない留置車両を削除し、セーブをリセット（保存して再読み込み後に再構築）",
+ "하드 리셋: 모든 작업과 기관차 없는 정차 차량 삭제, 저장 파일 초기화 (저장 후 다시 불러오면 재구성)",
+ "HARD TILBAKESTILLING: slett alle oppdrag og parkerte vogner uten lokomotiv, tilbakestill lagringen (bygges på nytt etter lagring og ny innlasting)",
+ "TWARDY RESET: usuń wszystkie zlecenia i odstawione wagony bez lokomotywy, zresetuj zapis (odbudowa po zapisaniu i ponownym wczytaniu)",
+ "REPOSIÇÃO TOTAL: apagar todos os trabalhos e vagões estacionados sem locomotiva, repor a gravação (reconstruída após gravar e voltar a carregar)",
+ "RESET TOTAL: excluir todos os trabalhos e vagões estacionados sem locomotiva, redefinir o save (reconstruído após salvar e recarregar)",
+ "RESETARE COMPLETĂ: șterge toate sarcinile și vagoanele parcate fără locomotivă, resetează salvarea (reconstruită după salvare și reîncărcare)",
+ "ПОЛНЫЙ СБРОС: удалить все задания и стоящие вагоны без локомотива, сбросить сохранение (восстановится после сохранения и перезагрузки)",
+ "TVRDÝ RESET: zmazať všetky zákazky a odstavené vozne bez lokomotívy, resetovať uloženú hru (obnoví sa po uložení a opätovnom načítaní)",
+ "REINICIO TOTAL: eliminar todos los trabajos y vagones aparcados sin locomotora, restablecer la partida (se reconstruye al guardar y volver a cargar)",
+ "HÅRD ÅTERSTÄLLNING: ta bort alla uppdrag och uppställda vagnar utan lok, återställ sparfilen (byggs upp igen efter sparning och omladdning)",
+ "TAM SIFIRLAMA: tüm işleri ve lokomotifsiz park halindeki vagonları sil, kaydı sıfırla (kaydedip yeniden yükleyince yeniden kurulur)",
+ "ПОВНЕ СКИДАННЯ: видалити всі завдання й вагони без локомотива, що стоять, скинути збереження (відновиться після збереження й перезавантаження)")
+
+k("btn_hard_confirm",
+ "Click again within 5 s to confirm","Кликни отново до 5 с за потвърждение","5 秒内再次点击以确认","5 秒內再次點擊以確認","Pro potvrzení klikněte znovu do 5 s","Klik igen inden for 5 s for at bekræfte","Binnen 5 s nogmaals klikken om te bevestigen","Vahvista napsauttamalla uudelleen 5 s kuluessa","Cliquez à nouveau dans les 5 s pour confirmer","Zum Bestätigen innerhalb von 5 s erneut klicken","पुष्टि के लिए 5 से. के भीतर फिर क्लिक करें","Megerősítéshez kattints újra 5 mp-en belül","Clicca di nuovo entro 5 s per confermare","確認するには5秒以内にもう一度クリック","확인하려면 5초 안에 다시 클릭","Klikk igjen innen 5 s for å bekrefte","Kliknij ponownie w ciągu 5 s, aby potwierdzić","Clique novamente em 5 s para confirmar","Clique de novo em até 5 s para confirmar","Click din nou în 5 s pentru confirmare","Нажмите ещё раз в течение 5 с для подтверждения","Na potvrdenie kliknite znova do 5 s","Haz clic de nuevo en 5 s para confirmar","Klicka igen inom 5 s för att bekräfta","Onaylamak için 5 sn içinde tekrar tıklayın","Натисніть ще раз протягом 5 с для підтвердження")
+
+k("hard_running",
+ "Hard reset running ...","Пълното нулиране тече ...","正在强制重置……","正在強制重設……","Tvrdý reset probíhá ...","Hård nulstilling kører ...","Harde reset bezig ...","Kova nollaus käynnissä ...","Réinitialisation complète en cours ...","Harter Neuaufbau läuft ...","हार्ड रीसेट चल रहा है ...","Teljes újraépítés folyamatban ...","Reset totale in corso ...","ハードリセット実行中…","하드 리셋 진행 중 ...","Hard tilbakestilling pågår ...","Twardy reset w toku ...","Reposição total em curso ...","Reset total em andamento ...","Resetare completă în curs ...","Идёт полный сброс ...","Tvrdý reset prebieha ...","Reinicio total en curso ...","Hård återställning pågår ...","Tam sıfırlama sürüyor ...","Триває повне скидання ...")
+
+k("n_hard_done",
+ "Hard reset done - save and load the savegame again to rebuild the world",
+ "Пълното нулиране е готово – запиши и зареди отново, за да се изгради светът",
+ "强制重置完成——保存并重新载入存档以重建世界",
+ "強制重設完成——儲存並重新載入存檔以重建世界",
+ "Tvrdý reset hotov – uložte a znovu načtěte hru, aby se svět obnovil",
+ "Hård nulstilling færdig – gem og indlæs spillet igen for at genopbygge verden",
+ "Harde reset klaar – sla op en laad opnieuw om de wereld opnieuw op te bouwen",
+ "Kova nollaus valmis – tallenna ja lataa uudelleen, niin maailma rakennetaan uudelleen",
+ "Réinitialisation terminée – sauvegardez et rechargez pour reconstruire le monde",
+ "Harter Reset fertig – Spielstand speichern und neu laden, dann wird die Welt neu aufgebaut",
+ "हार्ड रीसेट पूरा – दुनिया फिर से बनाने के लिए सेव करके दोबारा लोड करें",
+ "Teljes visszaállítás kész – mentsd és töltsd be újra a világ újraépítéséhez",
+ "Reset totale completato – salva e ricarica per ricostruire il mondo",
+ "ハードリセット完了 – 保存して再読み込みするとワールドが再構築されます",
+ "하드 리셋 완료 – 저장 후 다시 불러오면 월드가 재구성됩니다",
+ "Hard tilbakestilling ferdig – lagre og last inn på nytt for å bygge verden opp igjen",
+ "Twardy reset gotowy – zapisz i wczytaj ponownie, aby odbudować świat",
+ "Reposição total concluída – grave e volte a carregar para reconstruir o mundo",
+ "Reset total concluído – salve e recarregue para reconstruir o mundo",
+ "Resetare completă – salvează și reîncarcă pentru a reconstrui lumea",
+ "Полный сброс выполнен – сохраните и загрузите снова, чтобы мир восстановился",
+ "Tvrdý reset hotový – uložte a znova načítajte hru, aby sa svet obnovil",
+ "Reinicio total hecho – guarda y vuelve a cargar para reconstruir el mundo",
+ "Hård återställning klar – spara och ladda igen för att bygga upp världen",
+ "Tam sıfırlama tamam – dünyayı yeniden kurmak için kaydedip yeniden yükleyin",
+ "Повне скидання виконано – збережіть і завантажте знову, щоб світ відновився")
+
+k("btn_profile",
+ "Measure CPU per component (30 s)","Измери CPU по компоненти (30 с)","按组件测量 CPU（30 秒）","依元件測量 CPU（30 秒）","Změřit CPU podle komponent (30 s)","Mål CPU pr. komponent (30 s)","CPU per component meten (30 s)","Mittaa CPU komponenteittain (30 s)","Mesurer le CPU par composant (30 s)","CPU pro Komponente messen (30 s)","घटक अनुसार CPU मापें (30 से.)","CPU mérése komponensenként (30 mp)","Misura CPU per componente (30 s)","コンポーネント別CPU計測（30秒）","컴포넌트별 CPU 측정 (30초)","Mål CPU per komponent (30 s)","Zmierz CPU wg komponentów (30 s)","Medir CPU por componente (30 s)","Medir CPU por componente (30 s)","Măsoară CPU pe componentă (30 s)","Измерить CPU по компонентам (30 с)","Zmerať CPU podľa komponentov (30 s)","Medir CPU por componente (30 s)","Mät CPU per komponent (30 s)","Bileşen başına CPU ölç (30 sn)","Виміряти CPU за компонентами (30 с)")
+
+k("profile_running",
+ "Measuring CPU ...","Измерване на CPU ...","正在测量 CPU……","正在測量 CPU……","Měření CPU ...","Måler CPU ...","CPU meten ...","Mitataan CPU:ta ...","Mesure du CPU ...","CPU wird gemessen ...","CPU माप रहा है ...","CPU mérése ...","Misurazione CPU ...","CPU計測中…","CPU 측정 중 ...","Måler CPU ...","Pomiar CPU ...","A medir CPU ...","Medindo CPU ...","Se măsoară CPU ...","Измерение CPU ...","Meranie CPU ...","Midiendo CPU ...","Mäter CPU ...","CPU ölçülüyor ...","Вимірювання CPU ...")
+
+k("n_profile_done",
+ "CPU measurement done - result is in Player.log","Измерването на CPU е готово – резултатът е в Player.log","CPU 测量完成——结果在 Player.log 中","CPU 測量完成——結果在 Player.log 中","Měření CPU hotovo – výsledek je v Player.log","CPU-måling færdig – resultatet er i Player.log","CPU-meting klaar – resultaat staat in Player.log","CPU-mittaus valmis – tulos on Player.log-tiedostossa","Mesure du CPU terminée – résultat dans Player.log","CPU-Messung fertig – Ergebnis steht in Player.log","CPU माप पूरा – परिणाम Player.log में है","CPU-mérés kész – az eredmény a Player.log-ban","Misurazione CPU completata – risultato in Player.log","CPU計測完了 – 結果は Player.log にあります","CPU 측정 완료 – 결과는 Player.log에 있습니다","CPU-måling ferdig – resultatet står i Player.log","Pomiar CPU gotowy – wynik w Player.log","Medição de CPU concluída – resultado no Player.log","Medição de CPU concluída – resultado no Player.log","Măsurarea CPU gata – rezultatul e în Player.log","Измерение CPU завершено – результат в Player.log","Meranie CPU hotové – výsledok je v Player.log","Medición de CPU terminada – el resultado está en Player.log","CPU-mätning klar – resultatet finns i Player.log","CPU ölçümü tamam – sonuç Player.log içinde","Вимірювання CPU завершено – результат у Player.log")
+
+k("pause_brakes",
+ "Pause the brake simulation of completely frozen trains",
+ "Спирай симулацията на спирачките при напълно замразени влакове",
+ "暂停完全冻结列车的制动模拟",
+ "暫停完全凍結列車的制動模擬",
+ "Pozastavit simulaci brzd u zcela zmrazených vlaků",
+ "Sæt bremsesimuleringen på pause for helt frosne tog",
+ "Remsimulatie van volledig bevroren treinen pauzeren",
+ "Keskeytä jarrusimulaatio kokonaan jäädytetyiltä junilta",
+ "Mettre en pause la simulation des freins des trains entièrement gelés",
+ "Bremssimulation vollständig eingefrorener Züge pausieren",
+ "पूरी तरह फ़्रीज़ ट्रेनों का ब्रेक सिमुलेशन रोकें",
+ "A teljesen fagyasztott vonatok fékszimulációjának szüneteltetése",
+ "Metti in pausa la simulazione dei freni dei treni completamente congelati",
+ "完全にフリーズした列車のブレーキシミュレーションを停止",
+ "완전히 동결된 열차의 제동 시뮬레이션 일시정지",
+ "Sett bremsesimuleringen på pause for helt frosne tog",
+ "Wstrzymaj symulację hamulców całkowicie zamrożonych pociągów",
+ "Pausar a simulação dos travões de comboios totalmente congelados",
+ "Pausar a simulação dos freios de trens totalmente congelados",
+ "Oprește simularea frânelor la trenurile complet înghețate",
+ "Приостанавливать симуляцию тормозов полностью замороженных поездов",
+ "Pozastaviť simuláciu bŕzd úplne zmrazených vlakov",
+ "Pausar la simulación de frenos de los trenes totalmente congelados",
+ "Pausa bromssimuleringen för helt frysta tåg",
+ "Tamamen dondurulmuş trenlerin fren simülasyonunu duraklat",
+ "Призупиняти симуляцію гальм повністю заморожених поїздів")
+
+k("freeze_kinematic",
+ "OLD method: also make frozen cars kinematic (not recommended)",
+ "СТАР метод: прави замразените вагони и кинематични (не се препоръчва)",
+ "旧方法：同时将冻结车厢设为运动学刚体（不推荐）",
+ "舊方法：同時將凍結車廂設為運動學剛體（不建議）",
+ "STARÁ metoda: zmrazené vagony navíc nastavit jako kinematické (nedoporučeno)",
+ "GAMMEL metode: gør også frosne vogne kinematiske (anbefales ikke)",
+ "OUDE methode: bevroren wagons ook kinematisch maken (niet aanbevolen)",
+ "VANHA tapa: tee jäädytetyistä vaunuista myös kinemaattisia (ei suositella)",
+ "ANCIENNE méthode : rendre aussi les wagons gelés cinématiques (déconseillé)",
+ "ALTE Methode: eingefrorene Wagen zusätzlich kinematisch machen (nicht empfohlen)",
+ "पुराना तरीका: फ़्रीज़ डिब्बों को काइनेमैटिक भी बनाएँ (अनुशंसित नहीं)",
+ "RÉGI módszer: a fagyasztott kocsik kinematikussá tétele is (nem ajánlott)",
+ "VECCHIO metodo: rendi anche cinematici i vagoni congelati (sconsigliato)",
+ "旧方式：フリーズ車両をキネマティックにもする（非推奨）",
+ "이전 방식: 동결 차량을 키네마틱으로도 설정 (권장하지 않음)",
+ "GAMMEL metode: gjør også frosne vogner kinematiske (anbefales ikke)",
+ "STARA metoda: ustaw zamrożone wagony także jako kinematyczne (niezalecane)",
+ "Método ANTIGO: tornar também os vagões congelados cinemáticos (não recomendado)",
+ "Método ANTIGO: tornar também os vagões congelados cinemáticos (não recomendado)",
+ "Metoda VECHE: fă vagoanele înghețate și cinematice (nerecomandat)",
+ "СТАРЫЙ способ: делать замороженные вагоны ещё и кинематическими (не рекомендуется)",
+ "STARÁ metóda: zmrazené vozne navyše nastaviť ako kinematické (neodporúča sa)",
+ "Método ANTIGUO: hacer también cinemáticos los vagones congelados (no recomendado)",
+ "GAMMAL metod: gör även frysta vagnar kinematiska (rekommenderas inte)",
+ "ESKİ yöntem: dondurulmuş vagonları ayrıca kinematik yap (önerilmez)",
+ "СТАРИЙ спосіб: робити заморожені вагони ще й кінематичними (не рекомендовано)")
+
+# ---- v0.05.24: eingedampfte Einstellungen (ueberschreibt fruehere Texte)
+k("world_init",
+ "One-time spawn of all cars and jobs","Еднократно създаване на всички вагони и задачи","一次性生成所有车厢和任务","一次性產生所有車廂與任務","Jednorázové vytvoření všech vagonů a zakázek","Engangs-spawn af alle vogne og jobs","Eenmalige spawn van alle wagons en opdrachten","Kaikkien vaunujen ja tehtävien kertaluonti","Génération unique de tous les wagons et missions","Einmaliger Spawn aller Wagen und Jobs","सभी डिब्बों और कामों का एक बार स्पॉन","Az összes kocsi és munka egyszeri létrehozása","Generazione unica di tutti i vagoni e incarichi","全車両とジョブを一度だけ生成","모든 차량과 작업 1회 생성","Engangs-spawn av alle vogner og oppdrag","Jednorazowe utworzenie wszystkich wagonów i zleceń","Geração única de todos os vagões e trabalhos","Geração única de todos os vagões e trabalhos","Generare unică a tuturor vagoanelor și sarcinilor","Однократное создание всех вагонов и заданий","Jednorazové vytvorenie všetkých vozňov a zákaziek","Generación única de todos los vagones y trabajos","Engångsspawn av alla vagnar och uppdrag","Tüm vagon ve işlerin tek seferlik oluşturulması","Одноразове створення всіх вагонів і завдань")
+
+k("h_jobgen",
+ "Job generation settings","Настройки за създаване на задачи","任务生成设置","任務產生設定","Nastavení vytváření zakázek","Indstillinger for jobgenerering","Instellingen opdrachtgeneratie","Tehtävien luonnin asetukset","Paramètres de génération des missions","Einstellungen zur Job-Erzeugung","काम निर्माण सेटिंग्स","Munkagenerálás beállításai","Impostazioni generazione incarichi","ジョブ生成の設定","작업 생성 설정","Innstillinger for oppdragsgenerering","Ustawienia tworzenia zleceń","Definições de geração de trabalhos","Configurações de geração de trabalhos","Setări pentru generarea sarcinilor","Настройки создания заданий","Nastavenia vytvárania zákaziek","Ajustes de generación de trabajos","Inställningar för uppdragsgenerering","İş oluşturma ayarları","Налаштування створення завдань")
+
+k("alt_toggle",
+ "Enable alternative destination tracks per job type","Разреши алтернативни целеви коловози според вида задача","按任务类型启用替代目的股道","依任務類型啟用替代目的股道","Povolit náhradní cílové koleje podle typu zakázky","Aktivér alternative destinationsspor pr. jobtype","Alternatieve bestemmingssporen per opdrachttype inschakelen","Salli vaihtoehtoiset kohderaiteet tehtävätyypin mukaan","Activer les voies de destination alternatives selon le type de mission","Alternative Zielgleise je Auftragsart aktivieren","काम के प्रकार के अनुसार वैकल्पिक गंतव्य ट्रैक सक्षम करें","Alternatív célvágányok engedélyezése munkatípusonként","Abilita binari di destinazione alternativi per tipo di incarico","ジョブ種別ごとに代替目的線を有効化","작업 유형별 대체 목적 선로 사용","Aktiver alternative målspor per oppdragstype","Włącz zastępcze tory docelowe wg typu zlecenia","Ativar linhas de destino alternativas por tipo de trabalho","Ativar linhas de destino alternativas por tipo de trabalho","Activează linii de destinație alternative pe tip de sarcină","Включить альтернативные пути назначения по типу задания","Povoliť náhradné cieľové koľaje podľa typu zákazky","Activar vías de destino alternativas según el tipo de trabajo","Aktivera alternativa målspår per uppdragstyp","İş türüne göre alternatif hedef hatlarını etkinleştir","Увімкнути альтернативні колії призначення за типом завдання")
+
+k("debug_toggle",
+ "Debug","Отстраняване на грешки","调试","除錯","Ladění","Fejlfinding","Debug","Virheenjäljitys","Débogage","Debug","डीबग","Hibakeresés","Debug","デバッグ","디버그","Feilsøking","Debugowanie","Depuração","Depuração","Depanare","Отладка","Ladenie","Depuración","Felsökning","Hata ayıklama","Налагодження")
+
+k("h_debug",
+ "DEBUG","ОТСТРАНЯВАНЕ НА ГРЕШКИ","调试","除錯","LADĚNÍ","FEJLFINDING","DEBUG","VIANETSINTÄ","DÉBOGAGE","DEBUG","डीबग","HIBAKERESÉS","DEBUG","デバッグ","디버그","FEILSØKING","DEBUGOWANIE","DEPURAÇÃO","DEPURAÇÃO","DEPANARE","ОТЛАДКА","LADENIE","DEPURACIÓN","FELSÖKNING","HATA AYIKLAMA","НАЛАГОДЖЕННЯ")
+
+k("btn_hard",
+ "TOTAL RESET: delete all jobs and parked cars without a locomotive, reset the savegame (rebuilt after saving and reloading)",
+ "ПЪЛНО НУЛИРАНЕ: изтрий всички задачи и паркирани вагони без локомотив, нулирай записа (изгражда се след запис и ново зареждане)",
+ "完全重置：删除所有任务和无机车的停放车厢并重置存档（保存并重新载入后重建）",
+ "完全重設：刪除所有任務與無機車的停放車廂並重設存檔（儲存並重新載入後重建）",
+ "ÚPLNÝ RESET: smazat všechny zakázky a odstavené vagony bez lokomotivy, resetovat uloženou hru (obnoví se po uložení a novém načtení)",
+ "TOTAL NULSTILLING: slet alle jobs og parkerede vogne uden lokomotiv, nulstil det gemte spil (genopbygges efter gem og genindlæsning)",
+ "TOTALE RESET: alle opdrachten en geparkeerde wagons zonder locomotief verwijderen, opslag resetten (wordt opnieuw opgebouwd na opslaan en herladen)",
+ "TÄYSI NOLLAUS: poista kaikki tehtävät ja seisovat vaunut ilman veturia, nollaa tallennus (rakennetaan uudelleen tallennuksen ja uudelleenlatauksen jälkeen)",
+ "RÉINITIALISATION TOTALE : supprimer toutes les missions et les wagons garés sans locomotive, réinitialiser la sauvegarde (reconstruite après sauvegarde et rechargement)",
+ "TOTAL RESET: alle Aufträge und abgestellten Wagen ohne Lok löschen, Spielstand zurücksetzen (Neuaufbau nach Speichern und Neuladen)",
+ "पूर्ण रीसेट: सभी काम और बिना इंजन के खड़े डिब्बे हटाएँ, सेव रीसेट करें (सेव करके दोबारा लोड करने पर फिर बनेगा)",
+ "TELJES VISSZAÁLLÍTÁS: minden munka és mozdony nélküli álló kocsi törlése, mentés visszaállítása (mentés és újratöltés után újraépül)",
+ "RESET TOTALE: elimina tutti gli incarichi e i vagoni parcheggiati senza locomotiva, azzera il salvataggio (ricostruito dopo salvataggio e ricaricamento)",
+ "完全リセット：全ジョブと機関車のない留置車両を削除し、セーブをリセット（保存して再読み込み後に再構築）",
+ "전체 리셋: 모든 작업과 기관차 없는 정차 차량 삭제, 저장 파일 초기화 (저장 후 다시 불러오면 재구성)",
+ "TOTAL TILBAKESTILLING: slett alle oppdrag og parkerte vogner uten lokomotiv, tilbakestill lagringen (bygges på nytt etter lagring og ny innlasting)",
+ "PEŁNY RESET: usuń wszystkie zlecenia i odstawione wagony bez lokomotywy, zresetuj zapis (odbudowa po zapisaniu i ponownym wczytaniu)",
+ "REPOSIÇÃO TOTAL: apagar todos os trabalhos e vagões estacionados sem locomotiva, repor a gravação (reconstruída após gravar e voltar a carregar)",
+ "RESET TOTAL: excluir todos os trabalhos e vagões estacionados sem locomotiva, redefinir o save (reconstruído após salvar e recarregar)",
+ "RESETARE TOTALĂ: șterge toate sarcinile și vagoanele parcate fără locomotivă, resetează salvarea (reconstruită după salvare și reîncărcare)",
+ "ПОЛНЫЙ СБРОС: удалить все задания и стоящие вагоны без локомотива, сбросить сохранение (восстановится после сохранения и перезагрузки)",
+ "ÚPLNÝ RESET: zmazať všetky zákazky a odstavené vozne bez lokomotívy, resetovať uloženú hru (obnoví sa po uložení a opätovnom načítaní)",
+ "REINICIO TOTAL: eliminar todos los trabajos y vagones aparcados sin locomotora, restablecer la partida (se reconstruye al guardar y volver a cargar)",
+ "TOTAL ÅTERSTÄLLNING: ta bort alla uppdrag och uppställda vagnar utan lok, återställ sparfilen (byggs upp igen efter sparning och omladdning)",
+ "TAM SIFIRLAMA: tüm işleri ve lokomotifsiz park halindeki vagonları sil, kaydı sıfırla (kaydedip yeniden yükleyince yeniden kurulur)",
+ "ПОВНЕ СКИДАННЯ: видалити всі завдання й вагони без локомотива, що стоять, скинути збереження (відновиться після збереження й перезавантаження)")
