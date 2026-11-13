@@ -1,6 +1,6 @@
 import sys, re, os
 HERE = os.path.dirname(os.path.abspath(__file__))
-for _f in ('t1.py','t2.py','t3.py','t4.py','t5.py','t6.py','t7.py','t8.py','t9.py','t10.py'):
+for _f in ('t1.py','t2.py','t3.py','t4.py','t5.py','t6.py','t7.py','t8.py','t9.py','t10.py','t11.py','t12.py','t13.py','t14.py','t15.py','t16.py'):
     exec(open(os.path.join(HERE, _f), encoding='utf-8').read())
 NATIVE = ["English","Български","中文 简体","正體中文 台灣","Čeština","Dansk","Nederlands","Suomi","Français","Deutsch","हिन्दी","Magyar","Italiano","日本語","한국어","Norsk","Polski","Português (Portugal)","Português (Brasil)","Română","Русский","Slovenčina","Español","Svenska","Türkçe","Українська"]
 # Platzhalter-Pruefung
