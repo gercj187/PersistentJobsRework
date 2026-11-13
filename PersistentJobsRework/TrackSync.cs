@@ -24,6 +24,9 @@ namespace PersistentJobsRework
 
         /// <summary>Host: an alle Clients senden.</summary>
         void Send(string jobId, string taskNetIds, string trackId);
+
+        /// <summary>Client: Anfrage an den Host (z. B. "TRASH" = ausliegenden Job wegwerfen).</summary>
+        void SendToServer(string kind, string jobId, string data);
     }
 
     /// <summary>Gleis-Sync Host -> Clients.</summary>
@@ -73,6 +76,20 @@ namespace PersistentJobsRework
 
         // ------------------------------------------------------------------ Host
 
+        /// <summary>
+        /// Abzug fuers Ausweichgleis an die Clients (gleicher Kanal): taskNetIds = "DED",
+        /// trackId = "Prozent|G3O,D5I". Der Client rechnet damit Lohn und Auftragsbericht genauso wie der Host.
+        /// </summary>
+        internal static void SendDeduction(string jobId, float percent, IEnumerable<string> assigned)
+        {
+            if (!Mp.Available || !Main.IsAuthority || string.IsNullOrEmpty(jobId)) return;
+            EnsureLoaded();
+            if (_impl == null) return;
+            string payload = percent.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "|" + string.Join(",", assigned ?? new string[0]);
+            try { _impl.Send(jobId, "DED", payload); }
+            catch (Exception ex) { Main.Warning("[MP] Sending the deduction failed: " + ex.Message); }
+        }
+
         internal static void Send(Job job, IEnumerable<Task> tasks, Track track, string field = "destinationTrack")
         {
             if (!Mp.Available || job == null || track == null) return;
@@ -96,11 +113,29 @@ namespace PersistentJobsRework
             catch (Exception ex) { Main.Warning("[MP] Sending the destination track failed: " + ex.Message); }
         }
 
+        /// <summary>Client -> Host: Anfrage senden.</summary>
+        internal static bool SendToServer(string kind, string jobId, string data = "")
+        {
+            if (!Mp.Available || !Mp.IsClient) return false;
+            EnsureLoaded();
+            if (_impl == null) return false;
+            try { _impl.SendToServer(kind, jobId, data ?? ""); return true; }
+            catch (Exception ex) { Main.Warning("[MP] Sending a request to the host failed: " + ex.Message); return false; }
+        }
+
+        /// <summary>Wird von der Zusatz-DLL aufgerufen, wenn beim Host eine Client-Anfrage ankommt.</summary>
+        public static void OnServerPacket(string kind, string jobId, string data, string sender)
+        {
+            if (!Main.IsAuthority) return;
+            if (kind == "TRASH") TrashAvailableJobs.OnClientRequest(jobId, sender);
+        }
+
         // ------------------------------------------------------------------ Client
 
         /// <summary>Wird von der Zusatz-DLL aufgerufen, wenn das Paket beim Client ankommt.</summary>
         public static void OnClientPacket(string jobId, string taskNetIds, string trackId)
         {
+            if (taskNetIds == "DED") { AlternativeTracks.OnClientDeduction(jobId, trackId); return; }
             Runtime.Spawner?.StartCoroutine(ApplyOnClient(jobId, taskNetIds, trackId));
         }
 

@@ -24,6 +24,12 @@ namespace PersistentJobsRework
             public readonly List<KeyValuePair<Rigidbody, bool>> Bodies = new List<KeyValuePair<Rigidbody, bool>>();
             public readonly List<Behaviour> DisabledBehaviours = new List<Behaviour>();
             public bool OptimizedByUs;
+            // Tiefschlaf: nur ausgeschaltete Darstellung/Sound - Drehgestelle, Collider und Rigidbodies bleiben,
+            // damit Achszaehler/Gleisbelegung (z. B. eigene Stellwerksmod) unveraendert besetzt melden
+            public bool Deep;
+            public readonly List<Renderer> DeepRenderers = new List<Renderer>();
+            public readonly List<Behaviour> DeepBehaviours = new List<Behaviour>();
+            public readonly List<Component> DeepParticles = new List<Component>();   // ParticleSystem per Reflection (kein Modul-Verweis noetig)
             public object BrakeSystem;
             public Car LogicCar;
         }
@@ -44,6 +50,7 @@ namespace PersistentJobsRework
 
         // ---- Werte fuer HUD / Log
         public int FrozenCount => _frozen.Count;
+        public int DeepCount { get; private set; }
         public int TotalCars { get; private set; }
         public int TotalSets { get; private set; }
         public double LastScanCpuMs { get; private set; }
@@ -146,7 +153,7 @@ namespace PersistentJobsRework
             TrainCar playerCar = PlayerManager.Car;
 
             int totalCars = 0;
-            _whyPlayerCar = _whyPlayerNear = _whyMoving = _whyMovingNear = _whyDerailed = _whyCooldown = _whyPartial = 0;
+            _whyPlayerCar = _whyPlayerNear = _whyMoving = _whyMovingNear = _whyDerailed = _whyCooldown = _whyPartial = _whyLoco = 0;
 
             foreach (var set in sets)
             {
@@ -167,6 +174,8 @@ namespace PersistentJobsRework
                 }
             }
 
+            UpdateDeepSleep();
+
             cpu.Stop();
             TotalCars = totalCars;
             TotalSets = sets.Length;
@@ -179,12 +188,24 @@ namespace PersistentJobsRework
                 _nextStatusLog = Time.realtimeSinceStartup + 10f;
                 Main.Log($"Freezer: {_frozen.Count} of {totalCars} cars frozen ({sets.Length} sets), scan {LastScanCpuMs:F1} ms CPU. " +
                          $"Awake because: player near {_whyPlayerNear}, player's train {_whyPlayerCar}, moving {_whyMoving}, " +
-                         $"moving train near {_whyMovingNear}, derailed {_whyDerailed}, just woken {_whyCooldown}, partly frozen {_whyPartial}.");
+                         $"moving train near {_whyMovingNear}, derailed {_whyDerailed}, just woken {_whyCooldown}, partly frozen {_whyPartial}, " +
+                         $"with loco {_whyLoco}.{Mp.PlayerSummary()}");
             }
         }
 
         private int _lastLoggedFrozen = -1;
-        private int _whyPlayerCar, _whyPlayerNear, _whyMoving, _whyMovingNear, _whyDerailed, _whyCooldown, _whyPartial;
+        private int _whyPlayerCar, _whyPlayerNear, _whyMoving, _whyMovingNear, _whyDerailed, _whyCooldown, _whyPartial, _whyLoco;
+
+        /// <summary>Lok, Tender oder Caboose in der Garnitur = Zug eines Spielers -> nie einfrieren (auch im MP sicher).</summary>
+        private static bool IsTrain(TrainCar car)
+        {
+            if (car == null) return false;
+            if (car.IsLoco) return true;
+            string n = car.name ?? "";
+            return n.StartsWith("Loco", StringComparison.OrdinalIgnoreCase)
+                || n.IndexOf("Tender", StringComparison.OrdinalIgnoreCase) >= 0
+                || n.IndexOf("Caboose", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
 
         // Schwellen: "steht" = unter 0,3 m/s, "faehrt" (weckt Nachbarn) = ueber 1 m/s. isStationary des Spiels
         // war zu empfindlich - frisch gespawnte Wagen zittern minimal und hielten sich gegenseitig wach.
@@ -193,6 +214,17 @@ namespace PersistentJobsRework
         // Nach dem Wecken mindestens so lange wach lassen - verhindert staendiges Ein-/Ausfrieren (Ruckler)
         private const float WakeCooldown = 30f;
         private readonly Dictionary<TrainCar, float> _lastWake = new Dictionary<TrainCar, float>();
+        /// <summary>Erst einfrieren, wenn eine Garnitur so lange stillsteht (fahrende/gerade abgestellte Zuege bleiben wach).</summary>
+        private const float StandStillBeforeFreeze = 120f;
+        private readonly Dictionary<TrainCar, float> _lastMoved = new Dictionary<TrainCar, float>();
+        /// <summary>
+        /// Position je Wagen beim letzten Scan (ohne Weltverschiebung). Bewegung wird zusaetzlich ueber die
+        /// Positionsaenderung erkannt: Im Multiplayer kann ein Zug, den ein Client steuert, auf dem Host als
+        /// Marionette ohne Geschwindigkeit laufen - dann meldet GetForwardSpeed 0 und der Zug wuerde bei voller
+        /// Fahrt eingefroren.
+        /// </summary>
+        private readonly Dictionary<TrainCar, Vector3> _lastPos = new Dictionary<TrainCar, Vector3>();
+        private const float MovedDistance = 0.5f;
 
         private static float Speed(TrainCar car)
         {
@@ -208,6 +240,9 @@ namespace PersistentJobsRework
             bool anyDerailed = false;
             bool containsPlayerCar = false;
             bool recentlyWoken = false;
+            bool hasLoco = false;
+            Vector3 originShift = WorldOrigin.Shift();
+            bool recentlyMoved = false;
             float nearestPlayer = float.MaxValue;
             float nearestMoving = float.MaxValue;
 
@@ -218,10 +253,20 @@ namespace PersistentJobsRework
 
                 bool isFrozen = _frozen.ContainsKey(car);
                 if (isFrozen) frozenInSet++;
-                else if (Speed(car) > StandingSpeed) allStationary = false;
+                else if (Speed(car) > StandingSpeed) { allStationary = false; _lastMoved[car] = Time.realtimeSinceStartup; }
+
+                Vector3 abs = car.transform.position - originShift;
+                if (_lastPos.TryGetValue(car, out var lastAbs) && (abs - lastAbs).sqrMagnitude > MovedDistance * MovedDistance)
+                {
+                    allStationary = false;
+                    _lastMoved[car] = Time.realtimeSinceStartup;
+                }
+                _lastPos[car] = abs;
+                if (_lastMoved.TryGetValue(car, out float moved) && Time.realtimeSinceStartup - moved < StandStillBeforeFreeze) recentlyMoved = true;
                 if (!isFrozen && _lastWake.TryGetValue(car, out float woke) && Time.realtimeSinceStartup - woke < WakeCooldown) recentlyWoken = true;
 
                 if (car.derailed) anyDerailed = true;
+                if (IsTrain(car)) hasLoco = true;
                 if (playerCar != null && car == playerCar) containsPlayerCar = true;
 
                 Vector3 pos = car.transform.position;
@@ -245,9 +290,18 @@ namespace PersistentJobsRework
                 return;
             }
 
+            // Zuege mit Lok/Tender/Caboose werden nie eingefroren: Im Multiplayer erkennt der Host sonst
+            // u. U. nicht, dass ein Client an seinem Zug steht -> Wagen auf dem Host fest, beim Client wildes Ruckeln.
+            if (hasLoco)
+            {
+                if (frozenInSet > 0) WakeCars(cars);
+                _whyLoco += cars.Count;
+                return;
+            }
+
             if (frozenInSet > 0)
             {
-                bool wake = containsPlayerCar || movingTrainClose || (!ignoreDistance && nearestPlayer < wakeSqr);
+                bool wake = containsPlayerCar || recentlyMoved || movingTrainClose || (!ignoreDistance && nearestPlayer < wakeSqr);
                 if (wake) { WakeCars(cars); return; }
                 // von aussen geweckt (z. B. Kupplungs-Nachbar) und steht trotzdem -> wieder schlafen legen
                 foreach (var c in cars)
@@ -257,14 +311,14 @@ namespace PersistentJobsRework
             }
 
             bool playerFar = ignoreDistance || nearestPlayer > freezeSqr;
-            bool freeze = allStationary && !anyDerailed && !containsPlayerCar && !movingTrainClose && playerFar && !recentlyWoken;
+            bool freeze = allStationary && !recentlyMoved && !anyDerailed && !containsPlayerCar && !movingTrainClose && playerFar && !recentlyWoken;
             if (freeze) { FreezeCars(cars); return; }
 
             // Grund, warum die Garnitur wach bleibt (fuers Log) - erster zutreffender Grund zaehlt
             int n = cars.Count;
             if (containsPlayerCar) _whyPlayerCar += n;
             else if (!playerFar) _whyPlayerNear += n;
-            else if (!allStationary) _whyMoving += n;
+            else if (!allStationary || recentlyMoved) _whyMoving += n;
             else if (movingTrainClose) _whyMovingNear += n;
             else if (anyDerailed) _whyDerailed += n;
             else if (recentlyWoken) _whyCooldown += n;
@@ -345,6 +399,7 @@ namespace PersistentJobsRework
             _frozen.Remove(car);
             _lastWake[car] = Time.realtimeSinceStartup;
 
+            if (fc.Deep) DeepWake(fc);
             foreach (var b in fc.DisabledBehaviours)
                 if (b != null) b.enabled = true;
 
@@ -365,6 +420,99 @@ namespace PersistentJobsRework
                     Main.WarningOnce("opt-wake", "ForceOptimizationState(false) failed: " + ex.Message);
                 }
             }
+        }
+
+        // ================================================================== Tiefschlaf (Debug)
+
+        private bool _lastBogieSetting;
+
+        private void UpdateDeepSleep()
+        {
+            bool on = Main.Settings.DeepSleep;
+            // Drehgestell-Schalter geaendert: alle Tiefschlaefer einmal wecken, beim naechsten Scan mit neuer Einstellung
+            bool bogies = on && Main.Settings.DeepSleepBogies;
+            if (bogies != _lastBogieSetting)
+            {
+                _lastBogieSetting = bogies;
+                foreach (var fc in _frozen.Values) if (fc.Deep) DeepWake(fc);
+            }
+            float sleepSqr = Main.Settings.DeepSleepDistance * Main.Settings.DeepSleepDistance;
+            float wakeDist = Mathf.Max(0f, Main.Settings.DeepSleepDistance - 200f);
+            float wakeSqr = wakeDist * wakeDist;
+            int deep = 0;
+            foreach (var kv in _frozen)
+            {
+                var car = kv.Key;
+                var fc = kv.Value;
+                if (car == null) continue;
+                if (!on)
+                {
+                    if (fc.Deep) DeepWake(fc);
+                    continue;
+                }
+                float d = Mp.NearestPlayerSqrDistance(car.transform.position);
+                if (!fc.Deep && d > sleepSqr) DeepSleepCar(car, fc);
+                else if (fc.Deep && d < wakeSqr) DeepWake(fc);
+                if (fc.Deep) deep++;
+            }
+            if (deep != DeepCount && (deep == 0 || DeepCount == 0 || Math.Abs(deep - DeepCount) >= 50))
+                Main.Log($"Deep sleep: {deep} far car(s) hidden and muted (beyond {Main.Settings.DeepSleepDistance:0} m).");
+            DeepCount = deep;
+        }
+
+        private static void DeepSleepCar(TrainCar car, FrozenCar fc)
+        {
+            try
+            {
+                foreach (var r in car.GetComponentsInChildren<Renderer>(true))
+                    if (r != null && r.enabled) { r.enabled = false; fc.DeepRenderers.Add(r); }
+                // AudioSource (AudioModule) ohne Modul-Verweis: ist ein Behaviour -> ueber den Typnamen
+                foreach (var b in car.GetComponentsInChildren<Behaviour>(true))
+                    if (b != null && b.enabled && b.GetType().Name == "AudioSource") { b.enabled = false; fc.DeepBehaviours.Add(b); }
+                // optional: Drehgestelle abschalten (spart Bogie.FixedUpdate inkl. Postfixe anderer Mods, z. B.
+                // Achszaehlung von DV_Signals). Die Wagen stehen, es gibt kein Ein-/Auszaehlen; der Zustand je
+                // Drehgestell bleibt in der anderen Mod erhalten und laeuft beim Aufwachen an derselben Stelle weiter.
+                if (Main.Settings.DeepSleepBogies)
+                    foreach (var b in car.GetComponentsInChildren<Behaviour>(true))
+                        if (b != null && b.enabled && b.GetType().Name == "Bogie") { b.enabled = false; fc.DeepBehaviours.Add(b); }
+                foreach (var l in car.GetComponentsInChildren<Light>(true))
+                    if (l != null && l.enabled) { l.enabled = false; fc.DeepBehaviours.Add(l); }
+                foreach (var c in car.GetComponentsInChildren<Component>(true))
+                {
+                    if (c == null || c.GetType().Name != "ParticleSystem") continue;
+                    if (!Reflect.Get<bool>(c, "isPlaying")) continue;
+                    CallParticle(c, "Pause");
+                    fc.DeepParticles.Add(c);
+                }
+                fc.Deep = true;
+            }
+            catch (Exception ex)
+            {
+                Main.WarningOnce("deep-sleep", "Deep sleep failed: " + ex.Message);
+                DeepWake(fc);
+            }
+        }
+
+        /// <summary>ParticleSystem.Pause(true) / Play(true) per Reflection.</summary>
+        private static void CallParticle(Component ps, string name)
+        {
+            try
+            {
+                var m = ps.GetType().GetMethod(name, new[] { typeof(bool) });
+                m?.Invoke(ps, new object[] { true });
+            }
+            catch { }
+        }
+
+        private static void DeepWake(FrozenCar fc)
+        {
+            foreach (var r in fc.DeepRenderers) if (r != null) r.enabled = true;
+            foreach (var b in fc.DeepBehaviours) if (b != null) b.enabled = true;
+            foreach (var p in fc.DeepParticles) if (p != null) CallParticle(p, "Play");
+            fc.DeepRenderers.Clear();
+            fc.DeepBehaviours.Clear();
+            fc.DeepParticles.Clear();
+            fc.Deep = false;
         }
 
         public void WakeAll(string reason)
@@ -389,6 +537,17 @@ namespace PersistentJobsRework
                 float now = Time.realtimeSinceStartup;
                 var old = _lastWake.Where(kv => kv.Key == null || now - kv.Value > WakeCooldown).Select(kv => kv.Key).ToList();
                 foreach (var k in old) _lastWake.Remove(k);
+            }
+            if (_lastMoved.Count > 0)
+            {
+                float now = Time.realtimeSinceStartup;
+                var oldMoved = _lastMoved.Where(kv => kv.Key == null || now - kv.Value > StandStillBeforeFreeze).Select(kv => kv.Key).ToList();
+                foreach (var k in oldMoved) _lastMoved.Remove(k);
+            }
+            if (_lastPos.Count > 0)
+            {
+                var gone = _lastPos.Keys.Where(k => k == null).ToList();
+                foreach (var k in gone) _lastPos.Remove(k);
             }
             List<TrainCar> dead = null;
             foreach (var car in _frozen.Keys)

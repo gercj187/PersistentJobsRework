@@ -18,8 +18,12 @@ namespace PersistentJobsRework
         public bool LhArriveOnInbound = true;
         public bool DeferReservationToAcceptance = false;   // false = Vanilla: Gleise werden schon bei der Erzeugung reserviert
         public bool AssignTrackOnAcceptance = true;
-        public int MaxJobsPerStation = 8;      // 0 = kein Limit
+        public int MaxJobsPerStation = 12;     // 0 = kein Limit
         public int ExtraWorldSpawnPasses = 0;  // weitere Durchlaeufe nach den regulaeren (fest 0)
+        public int MinFpsWorldSpawn = 30;
+        public int MinCarsPerType = 20;
+        public int InitialMaxCarsPerJob = 5;   // erster Spawn: hoechstens so viele Wagen je Job (0 = Bahnhofsregel)
+        public int MinShuntingJobsPerStation = 4; // erster Spawn: zuerst so viele Rangierjobs je Bahnhof        // Mindestbestand je ladbarem Wagentyp beim Weltspawn (0 = aus)      // Weltspawn stoppt, sobald die FPS darunter fallen (0 = aus)
         public int JobsPerPass = 1;            // Weltspawn reihum: max. neue Jobketten pro Bahnhof und Durchlauf (0 = aus)
         public bool ReserveFirstLinkOnly = true; // nur erstes Glied einer Kette sofort reservieren
         public float StationFillLimitPercent = 100f;   // max. Anteil der Gueter-Gleise (Anzahl), die beim Erzeugen Wagen bekommen
@@ -37,6 +41,10 @@ namespace PersistentJobsRework
         public bool WakeNearMovingTrains = true;
         public float MovingTrainWakeDistance = 300f;
         public bool FreezeLevel2 = false;      // experimentell: Skripte der Wagen pausieren
+        public bool DeepSleep = true;          // Debug/experimentell: weit entfernte eingefrorene Wagen unsichtbar + stumm
+        public float DeepSleepDistance = 1500f;
+        public bool DeepSleepBogies = false;
+        public bool ThrottleTrainsOptimizer = true;   // Debug: Vanilla-TrainsOptimizer ab 300 Wagen gedrosselt   // Debug/experimentell: im Tiefschlaf auch die Drehgestelle (Bogie) abschalten
         public string ProtectedComponentNames = "TrainCar,Bogie,Coupler,Networked,Track";
 
         // ---------------------------------------------------------- Debug / Test
@@ -65,6 +73,15 @@ namespace PersistentJobsRework
                 ShowOverlay = true;
                 SettingsVersion = 2;
             }
+            if (SettingsVersion < 3)
+            {
+                // einmalige Umstellung (v1.00.10): 12 Jobs je Bahnhof, Tiefschlaf an (1500 m)
+                if (MaxJobsPerStation == 8) MaxJobsPerStation = 12;
+                DeepSleep = true;
+                DeepSleepDistance = 1500f;
+                SettingsVersion = 3;
+            }
+            DeepSleepBogies = false;                // ausgeblendet, aus
 
             Language = "";                          // immer Spielsprache
             NeverDeleteCars = true;                 // Kern der Mod
@@ -78,7 +95,7 @@ namespace PersistentJobsRework
             DeferReservationToAcceptance = false;   // experimentell -> aus
             StationFillLimitPercent = 100f;         // experimentell -> aus
 
-            FreezeEnabled = true;
+            // FreezeEnabled: Debug-Schalter (zum Eingrenzen von MP-Problemen), Standard an
             FreezeDistance = 500f;
             WakeDistance = 200f;
             ScanInterval = 5f;
@@ -105,6 +122,10 @@ namespace PersistentJobsRework
             if (PriorityStations == null) PriorityStations = "";
             StationFillLimitPercent = Mathf.Clamp(StationFillLimitPercent, 10f, 100f);
             MaxJobsPerStation = Mathf.Clamp(MaxJobsPerStation, 0, 20);
+            MinFpsWorldSpawn = Mathf.Clamp(MinFpsWorldSpawn, 0, 90);
+            MinCarsPerType = Mathf.Clamp(MinCarsPerType, 0, 50);
+            InitialMaxCarsPerJob = Mathf.Clamp(InitialMaxCarsPerJob, 0, 20);
+            MinShuntingJobsPerStation = Mathf.Clamp(MinShuntingJobsPerStation, 0, 10);
             ExtraWorldSpawnPasses = Mathf.Clamp(ExtraWorldSpawnPasses, 0, 10);
             JobsPerPass = Mathf.Clamp(JobsPerPass, 0, 5);
             PenaltySameGroup = Mathf.Clamp(PenaltySameGroup, 0f, 50f);
@@ -130,22 +151,20 @@ namespace PersistentJobsRework
             }
 
             Header(Loc.T("h_jobgen"));
-            float sliderLabelWidth = CalculateSliderLabelWidth(
-                Loc.T("max_jobs"),
-                Loc.T("per_pass"),
-                "   " + Loc.T("pen_same"),
-                "   " + Loc.T("pen_other"));
             InitializeWorldOncePerSave = Toggle(InitializeWorldOncePerSave, "world_init");
-            MaxJobsPerStation = Mathf.RoundToInt(Slider(Loc.T("max_jobs"), MaxJobsPerStation, 0f, 20f, "", 0, "max_jobs", sliderLabelWidth));
-            JobsPerPass = Mathf.RoundToInt(Slider(Loc.T("per_pass"), JobsPerPass, 0f, 5f, "", 0, "per_pass", sliderLabelWidth));
+            MaxJobsPerStation = Mathf.RoundToInt(Slider(Loc.T("max_jobs"), MaxJobsPerStation, 0f, 20f, "", 0, "max_jobs"));
+            JobsPerPass = Mathf.RoundToInt(Slider(Loc.T("per_pass"), JobsPerPass, 0f, 5f, "", 0, "per_pass"));
+            InitialMaxCarsPerJob = Mathf.RoundToInt(Slider(Loc.T("init_cars"), InitialMaxCarsPerJob, 0f, 20f, InitialMaxCarsPerJob == 0 ? Loc.T("off") : "", 0, "init_cars"));
+            MinShuntingJobsPerStation = Mathf.RoundToInt(Slider(Loc.T("min_shunt"), MinShuntingJobsPerStation, 0f, 10f, "", 0, "min_shunt"));
+            MinFpsWorldSpawn = Mathf.RoundToInt(Slider(Loc.T("min_fps"), MinFpsWorldSpawn, 0f, 90f, MinFpsWorldSpawn == 0 ? Loc.T("off") : "FPS", 0, "min_fps"));
             AssignTrackOnAcceptance = Toggle(AssignTrackOnAcceptance, "bundle");
 
             GUILayout.Space(5);
             AlternativeTracks = Toggle(AlternativeTracks, "alt_toggle");
             if (AlternativeTracks)
             {
-                PenaltySameGroup = Slider("   " + Loc.T("pen_same"), PenaltySameGroup, 0f, 50f, "%", 0, "pen_same", sliderLabelWidth);
-                PenaltyOtherGroup = Slider("   " + Loc.T("pen_other"), PenaltyOtherGroup, 0f, 50f, "%", 0, "pen_other", sliderLabelWidth);
+                PenaltySameGroup = Slider("   " + Loc.T("pen_same"), PenaltySameGroup, 0f, 50f, "%", 0, "pen_same");
+                PenaltyOtherGroup = Slider("   " + Loc.T("pen_other"), PenaltyOtherGroup, 0f, 50f, "%", 0, "pen_other");
             }
 
             if (DebugMode) DrawDebug();
@@ -160,40 +179,46 @@ namespace PersistentJobsRework
             GUILayout.EndHorizontal();
 
             DrawTooltip();
+            // Slider-Spalte: breitester Text dieses Durchlaufs gilt im naechsten Frame fuer alle Slider
+            if (Event.current.type == EventType.Repaint) { _sliderColumn = _sliderColumnNext; _sliderColumnNext = 0f; }
         }
+
+        [NonSerialized] private static float _sliderColumn, _sliderColumnNext;
 
         private void DrawDebug()
         {
             Header(Loc.T("h_debug"));
             ShowOverlay = Toggle(ShowOverlay, "show_overlay");
+            FreezeEnabled = Toggle(FreezeEnabled, "dbg_freeze");
+            ThrottleTrainsOptimizer = Toggle(ThrottleTrainsOptimizer, "dbg_throttle");
+            DeepSleep = Toggle(DeepSleep, "deep_sleep");
+            if (DeepSleep)
+            {
+                DeepSleepDistance = Slider("   " + Loc.T("deep_dist"), DeepSleepDistance, 700f, 5000f, "m", 0, "deep_dist");
+            }
             GUILayout.BeginHorizontal();
-            GUILayout.Label("   " + Loc.T("priority"), GUILayout.Width(420));
+            GUILayout.Label("   " + Loc.T("priority"), GUILayout.ExpandWidth(false));
             PriorityStations = GUILayout.TextField(PriorityStations, GUILayout.Width(250));
             Help("priority");
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
             GUILayout.Space(5);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button(Tip("btn_stats", Loc.T("btn_stats")), GUILayout.Width(300))) Runtime.Freezer?.LogComponentStatistics();
-            if (GUILayout.Button(Tip("btn_profile", CpuProfiler.Running ? Loc.T("profile_running") : Loc.T("btn_profile")), GUILayout.Width(300)) && !CpuProfiler.Running)
-                CpuProfiler.Start();
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button(Tip("btn_spawn", Loc.T("btn_spawn")), GUILayout.Width(300))) Runtime.Spawner?.StartWorldSpawn(false);
-            if (GUILayout.Button(Tip("btn_reset_init", Loc.T("btn_reset_init")), GUILayout.Width(300))) WorldInit.ResetFlagAndRespawn();
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button(Tip("btn_refill", Loc.T("btn_refill")), GUILayout.Width(300))) JobRefill.Start();
-            GUILayout.EndHorizontal();
+            // Buttons untereinander, Breite nach Text (nichts abgeschnitten)
+            if (DebugButton("btn_stats", Loc.T("btn_stats"))) Runtime.Freezer?.LogComponentStatistics();
+            if (DebugButton("btn_profile", CpuProfiler.Running ? Loc.T("profile_running") : Loc.T("btn_profile")) && !CpuProfiler.Running) CpuProfiler.Start();
+            if (DebugButton("btn_spawn", Loc.T("btn_spawn"))) Runtime.Spawner?.StartWorldSpawn(false);
+            if (DebugButton("btn_reset_init", Loc.T("btn_reset_init"))) WorldInit.ResetFlagAndRespawn();
+            if (DebugButton("btn_refill", Loc.T("btn_refill"))) JobRefill.Start();
+            if (DebugButton("btn_minstock", Loc.T("btn_minstock")) && !MinStock.Running && Runtime.Spawner != null)
+                Runtime.Spawner.StartCoroutine(MinStock.Fill(Math.Max(1, MinCarsPerType)));
 
             // TOTAL RESET mit Sicherheitsabfrage (zweimal klicken innerhalb von 5 s)
             GUILayout.BeginHorizontal();
             bool armed = Time.realtimeSinceStartup < _hardArmedUntil;
             string hardText = WorldInit.HardResetRunning ? Loc.T("hard_running")
                             : armed ? "!!! " + Loc.T("btn_hard_confirm") + " !!!" : Loc.T("btn_hard");
-            if (GUILayout.Button(Tip("btn_hard", hardText), GUILayout.Width(604)) && !WorldInit.HardResetRunning)
+            if (GUILayout.Button(Tip("btn_hard", hardText), GUILayout.Width(ButtonWidth(hardText))) && !WorldInit.HardResetRunning)
             {
                 if (armed) { _hardArmedUntil = 0f; WorldInit.HardReset(); }
                 else _hardArmedUntil = Time.realtimeSinceStartup + 5f;
@@ -205,36 +230,36 @@ namespace PersistentJobsRework
 
         [NonSerialized] private float _hardArmedUntil;
 
+        private static float ButtonWidth(string text)
+            => Mathf.Max(320f, GUI.skin.button.CalcSize(new GUIContent(text)).x + 30f);
+
+        /// <summary>Ein Debug-Button pro Zeile, so breit wie sein Text.</summary>
+        private static bool DebugButton(string key, string text)
+        {
+            GUILayout.BeginHorizontal();
+            bool clicked = GUILayout.Button(Tip(key, text), GUILayout.Width(ButtonWidth(text)));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            return clicked;
+        }
+
         private static void Header(string text)
         {
             GUILayout.Space(10);
             GUILayout.Label($"<b>{text}</b>");
         }
 
-        private const float SliderControlWidth = 250f;
-        private const float SliderHelpWidth = 24f;
-        private const float SliderValueWidth = 70f;
-        private const float SliderLabelPadding = 8f;
-
-        private static float CalculateSliderLabelWidth(params string[] labels)
-        {
-            float width = 0f;
-            GUIStyle style = GUI.skin.label;
-            foreach (string label in labels)
-                width = Mathf.Max(width, style.CalcSize(new GUIContent(label)).x);
-
-            return Mathf.Ceil(width) + SliderLabelPadding;
-        }
-
-        private static float Slider(string label, float value, float min, float max, string unit, int decimals = 0, string helpKey = null, float labelWidth = 0f)
+        private static float Slider(string label, float value, float min, float max, string unit, int decimals = 0, string helpKey = null)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label, GUILayout.Width(labelWidth));
-            GUILayout.BeginHorizontal(GUILayout.Width(SliderHelpWidth));
+            string text = $"{label}: {Math.Round(value, decimals)} {unit}";
+            GUILayout.Label(text, GUILayout.ExpandWidth(false));
             if (helpKey != null) Help(helpKey);
-            GUILayout.EndHorizontal();
-            float v = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(SliderControlWidth));
-            GUILayout.Label($"{Math.Round(value, decimals)} {unit}".TrimEnd(), GUILayout.Width(SliderValueWidth));
+            // alle Slider buendig in einer Spalte direkt hinter dem laengsten Text (statt am rechten Rand)
+            float w = GUI.skin.label.CalcSize(new GUIContent(text)).x;
+            _sliderColumnNext = Mathf.Max(_sliderColumnNext, w);
+            GUILayout.Space(Mathf.Max(0f, _sliderColumn - w) + 12f);
+            float v = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(250));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             return decimals == 0 ? Mathf.Round(v) : (float)Math.Round(v, decimals);

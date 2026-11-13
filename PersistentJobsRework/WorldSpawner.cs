@@ -139,6 +139,14 @@ namespace PersistentJobsRework
                     ? $"World spawn round-robin: max. {perPass} new job chain(s) per station and pass, {regular} regular + {Passes - regular} extra pass(es)."
                     : $"World spawn: all jobs at once, {Passes - 1} extra pass(es).");
 
+                // Mindestbestand ZUERST: seltene Wagentypen (z. B. CCH) bekommen ihren Platz auf den S-Gleisen,
+                // bevor die normalen Durchlaeufe die Gleise fuellen. Am Ende wird noch einmal nachgeprueft.
+                if (Main.Settings.MinCarsPerType > 0 && !Lost())
+                {
+                    var first = MinStock.Fill(Main.Settings.MinCarsPerType);
+                    while (first.MoveNext()) yield return first.Current;
+                }
+
                 for (Pass = 1; Pass <= Passes; Pass++)
                 {
                     bool extra = Pass > 1;
@@ -243,12 +251,41 @@ namespace PersistentJobsRework
                     int addedThisPass = CountCars() - carsAtPass;
                     int newChains = chainsAtPass < 0 ? -1 : TotalChains(stations) - chainsAtPass;
                     Main.Log($"World spawn: pass {Pass}/{Passes} added {addedThisPass} cars{(newChains >= 0 ? $", {newChains} job chain(s)" : "")}.");
-                    if (extra && addedThisPass == 0)
+                    if (extra && addedThisPass == 0 && !InitialSpawnRules.AnyShuntingAttemptsLeft)
                     {
                         Main.Log("World spawn: nothing more could be generated - remaining passes skipped.");
                         break;
                     }
+
+                    // FPS-Grenze: nach jedem Durchlauf kurz beruhigen lassen, dann messen. Faellt die Bildrate unter
+                    // die Grenze, kommen keine weiteren Durchlaeufe (Durchlauf 1 laeuft immer: jeder Bahnhof bekommt Wagen).
+                    int minFps = Main.Settings.MinFpsWorldSpawn;
+                    if (minFps > 0 && Pass < Passes)
+                    {
+                        float settleUntil = Time.realtimeSinceStartup + 3f;
+                        while (Time.realtimeSinceStartup < settleUntil) yield return null;
+                        int f0 = Time.frameCount;
+                        float t0 = Time.realtimeSinceStartup;
+                        while (Time.realtimeSinceStartup - t0 < 3f) yield return null;
+                        float fps = (Time.frameCount - f0) / Mathf.Max(0.001f, Time.realtimeSinceStartup - t0);
+                        if (Lost()) continue;   // oben im naechsten Durchlauf: Abbruch mit Log
+                        if (fps < minFps)
+                        {
+                            Main.Log($"World spawn: {fps:0} FPS after pass {Pass} is below the limit of {minFps} FPS - remaining passes skipped ({CountCars()} cars).");
+                            break;
+                        }
+                        Main.Log($"World spawn: {fps:0} FPS after pass {Pass} (limit {minFps}).");
+                    }
                 }
+
+                // Mindestbestand je Wagentyp (vor dem Setzen des Merkers, Schadensschutz ist noch aktiv)
+                if (Main.Settings.MinCarsPerType > 0 && !Lost())
+                {
+                    var fill = MinStock.Fill(Main.Settings.MinCarsPerType);
+                    while (fill.MoveNext()) yield return fill.Current;
+                }
+                // Wagen aus dem Mindestbestand (leer auf S) bekommen jetzt ihre Beladejobs
+                if (Main.Settings.MinCarsPerType > 0) JobRefill.Start();
 
                 WorldInit.MarkDone();
                 SpawnProtection.RepairParkedCars();

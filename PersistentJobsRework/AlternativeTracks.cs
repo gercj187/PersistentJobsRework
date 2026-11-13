@@ -35,7 +35,7 @@ namespace PersistentJobsRework
 
         public static bool Active => Main.IsAuthority && Main.Settings.AlternativeTracks;
 
-        public static void Reset() { Deviations.Clear(); Completed.Clear(); }
+        public static void Reset() { Deviations.Clear(); Completed.Clear(); ClientDeductions.Clear(); }
 
         /// <summary>
         /// Abzuege abgeschlossener Jobs: Auszahlung und Auftragsbericht kommen erst NACH CompleteJob.
@@ -50,8 +50,45 @@ namespace PersistentJobsRework
         }
         internal static readonly Dictionary<string, CompletedDeduction> Completed = new Dictionary<string, CompletedDeduction>();
 
+        /// <summary>Client: vom Host gemeldete Abzuege je Job-ID (gelten fuer Lohn und Bericht).</summary>
+        private static readonly Dictionary<string, CompletedDeduction> ClientDeductions = new Dictionary<string, CompletedDeduction>();
+
+        /// <summary>Aus TrackSync: Paket "Prozent|G3O,D5I" vom Host.</summary>
+        internal static void OnClientDeduction(string jobId, string payload)
+        {
+            if (string.IsNullOrEmpty(jobId) || payload == null) return;
+            var parts = payload.Split('|');
+            if (!float.TryParse(parts[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float pct)) return;
+            var d = new CompletedDeduction { Percent = pct, At = UnityEngine.Time.realtimeSinceStartup };
+            if (parts.Length > 1 && parts[1].Length > 0) d.Assigned.AddRange(parts[1].Split(','));
+            ClientDeductions[jobId] = d;
+            Main.Log($"[MP] {jobId}: deduction -{pct:0.#}% for alternative track(s) received from host.");
+        }
+
+        /// <summary>Host: aktuellen Abzug eines Jobs an die Clients senden.</summary>
+        private static void SendDeduction(Job job)
+        {
+            if (job == null || !Mp.Available) return;
+            var mine = Deviations.Where(kv => BelongsTo(kv.Key, kv.Value, job)).ToList();
+            float total = Math.Min(mine.Sum(kv => kv.Value.Percent), 100f);
+            TrackSync.SendDeduction(job.ID, total, mine.Select(kv => ShortId(kv.Value.Assigned)));
+        }
+
+        private static string ShortId(string a)
+        {
+            a = a ?? "";
+            int dash = a.IndexOf('-');
+            return dash >= 0 ? a.Substring(dash + 1) : a;
+        }
+
         internal static CompletedDeduction FindCompleted(string jobId)
         {
+            if (!Main.IsAuthority)
+            {
+                if (string.IsNullOrEmpty(jobId) || !ClientDeductions.TryGetValue(jobId, out var cd)) return null;
+                if (UnityEngine.Time.realtimeSinceStartup - cd.At > 3600f) { ClientDeductions.Remove(jobId); return null; }
+                return cd;
+            }
             if (string.IsNullOrEmpty(jobId) || !Completed.TryGetValue(jobId, out var d)) return null;
             if (UnityEngine.Time.realtimeSinceStartup - d.At > 600f) { Completed.Remove(jobId); return null; }
             return d;
@@ -130,6 +167,7 @@ namespace PersistentJobsRework
                     string msg = $"{job?.ID ?? "Job"}: {usedId} instead of {assigned.ID.FullDisplayID} " +
                                  $"({(sameGroup ? "same group" : "other group")}) -{pct:0.#}%";
                     Main.Log("Alternative track accepted - " + msg);
+                    SendDeduction(job);   // Clients: gleicher Abzug bei Lohn und Bericht
                     // keine Texteinblendung im Bild (nur Log)
                 }
 
@@ -147,7 +185,14 @@ namespace PersistentJobsRework
         /// <summary>Postfix auf Job.GetWageForTheJob: Abzuege aller abweichenden Ziele dieses Jobs addieren.</summary>
         public static void GetWage_Postfix(Job __instance, ref float __result)
         {
-            if (!Main.IsAuthority || __instance == null) return;
+            if (__instance == null) return;
+            if (!Main.IsAuthority)
+            {
+                // Client: Abzug kommt vom Host (sonst bekaeme der Client den vollen Lohn)
+                float cp = FindCompleted(__instance.ID)?.Percent ?? 0f;
+                if (cp > 0f) __result *= Math.Max(0f, 1f - cp / 100f);
+                return;
+            }
             float pct = TotalPenaltyPercent(__instance);
             if (pct <= 0f && __instance.State == JobState.Completed) pct = FindCompleted(__instance.ID)?.Percent ?? 0f;
             if (pct > 0f) __result *= Math.Max(0f, 1f - pct / 100f);
@@ -202,6 +247,7 @@ namespace PersistentJobsRework
                 done.Assigned.Add(dash >= 0 ? a.Substring(dash + 1) : a);   // "HB-G3O" -> "G3O"
             }
             Completed[__instance.ID] = done;
+            if (Main.IsAuthority) TrackSync.SendDeduction(__instance.ID, done.Percent, done.Assigned);
 
             foreach (var kv in mine) Deviations.Remove(kv.Key);
         }

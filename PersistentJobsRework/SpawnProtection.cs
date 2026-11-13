@@ -19,7 +19,7 @@ namespace PersistentJobsRework
 
         public static bool Active =>
             Main.IsActive && Main.IsAuthority &&
-            (WorldSpawner.Running || Capacity.IsGenerating || Time.realtimeSinceStartup < _protectUntil);
+            (WorldSpawner.Running || MinStock.Running || Capacity.IsGenerating || Time.realtimeSinceStartup < _protectUntil);
 
         /// <summary>Prefix auf CarDamageModel.DamageCar und CargoDamageModel.ApplyDamageToCargo.</summary>
         public static bool Damage_Prefix(object __instance)

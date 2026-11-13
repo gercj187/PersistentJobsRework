@@ -136,6 +136,7 @@ namespace PersistentJobsRework
         public static int CarsDeleted;
         public static int GenerationsBlocked;
         public static int ExpiriesBlocked;
+        public static int OptimizerFramesSkipped;
         public static int ReservationsDeferred;
         public static long BrakeTicksSkipped;
     }

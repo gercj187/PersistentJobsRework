@@ -80,7 +80,10 @@ namespace PersistentJobsRework
             var opt = typeof(OptimizerPatches);
             var trainsOptimizer = FindGameType("TrainsOptimizer");
             if (trainsOptimizer != null)
+            {
                 PatchByName(trainsOptimizer, "ForceOptimizationStateOnCars", prefix: nameof(OptimizerPatches.ForceStateOnCars_Prefix), owner: opt);
+                PatchByName(trainsOptimizer, "Update", prefix: nameof(OptimizerPatches.TrainsOptimizerUpdate_Prefix), owner: opt);
+            }
             else Fail("type TrainsOptimizer not found");
             var brakeset = FindGameType("Brakeset");
             if (brakeset != null)
@@ -109,6 +112,10 @@ namespace PersistentJobsRework
                 PatchOne(m, "JobValidator.ProcessJobOverview (acceptance)", nameof(JobAcceptance.ProcessJobOverview_Prefix), null, null, Priority.LowerThanNormal, typeof(JobAcceptance));
                 PatchOne(m, "JobValidator.ProcessJobOverview", nameof(TrackAssignment.ProcessJobOverview_Prefix), null, null, Priority.Low, typeof(TrackAssignment));
             }
+            // 7b3) Ausliegende Jobs in den Papierkorb werfen -> verfallen, Wagen werden jobfrei
+            var abandoner = FindGameType("JobAbandoner");
+            if (abandoner != null) PatchByName(abandoner, "OnTriggerEnter", postfix: nameof(TrashAvailableJobs.OnTriggerEnter_Postfix), owner: typeof(TrashAvailableJobs));
+            else Fail("type JobAbandoner not found - available jobs can not be thrown away");
             // 7b2) Verfuegbare Jobs verfallen nicht mehr, wenn Wagen ohne Job den Bahnhof verlassen
             PatchByName(typeof(DV.Logic.Job.Job), "ExpireJob", prefix: nameof(JobAcceptance.ExpireJob_Prefix), owner: typeof(JobAcceptance));
             PatchByName(typeof(DV.Logic.Job.JobsManager), "TakeJob", prefix: nameof(JobAcceptance.TakeJob_Prefix), owner: typeof(JobAcceptance));

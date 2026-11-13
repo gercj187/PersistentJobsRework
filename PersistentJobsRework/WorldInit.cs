@@ -39,6 +39,7 @@ namespace PersistentJobsRework
 
         public static void OnNewCareer()
         {
+            InitialSpawnRules.RestoreAll();
             Session++;
             ResetPending = false;
             _careerJustStarted = true;   // das folgende Laden gehoert noch zu dieser Karriere
@@ -50,6 +51,7 @@ namespace PersistentJobsRework
         /// <summary>Nach dem Laden der Wagen: Merker aus dem Spielstand lesen (null = nicht vorhanden).</summary>
         public static void OnLoaded(bool? flagInSave)
         {
+            InitialSpawnRules.RestoreAll();
             if (!_careerJustStarted) Session++;
             _careerJustStarted = false;
             ResetPending = false;

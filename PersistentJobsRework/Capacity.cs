@@ -58,6 +58,7 @@ namespace PersistentJobsRework
             bool roundRobin = Main.Settings.JobsPerPass > 0 && string.Equals(WorldSpawner.SpawningYard, yard, StringComparison.OrdinalIgnoreCase);
             if (roundRobin) RoundRobinRuns.Add(yard); else RoundRobinRuns.Remove(yard);
             Controllers[yard] = controller;
+            InitialSpawnRules.Apply(controller, roundRobin);   // erster Spawn: max. 5 Wagen je Job, zuerst 4 Rangierjobs
             BaseChains[yard] = ChainCount(controller);
             FinalizedChains[yard] = 0;
             GeneratorChains[yard] = 0;
@@ -81,6 +82,7 @@ namespace PersistentJobsRework
                 else GeneratingYards[yard] = n - 1;
             }
             SpawnProtection.GenerationEnded();
+            InitialSpawnRules.Restore(controller);
             int chains = ChainCount(controller);
             int failed = FailedAttempts.TryGetValue(yard, out int fa) ? fa : 0;
             Main.Log($"Station {yard}: {chains} job chain(s) (limit {(Main.Settings.MaxJobsPerStation > 0 ? Main.Settings.MaxJobsPerStation.ToString() : "off")}), " +
@@ -250,12 +252,14 @@ namespace PersistentJobsRework
                 if (_refusedThisCall) { _refusedThisCall = false; return; } // vom Limit verweigert, kein echter Fehlversuch
                 string fy = GeneratorYard(__instance);
                 if (fy != null) FailedAttempts[fy] = FailedAttempts.TryGetValue(fy, out int fn) ? fn + 1 : 1;
+                if (fy != null && Controllers.TryGetValue(fy, out var fctl) && fctl != null) InitialSpawnRules.OnAttempt(fctl, false);
                 return;
             }
             string yard = GeneratorYard(__instance);
             if (yard == null) return;
             GeneratorChains[yard] = GeneratorChains.TryGetValue(yard, out int n) ? n + 1 : 1;
             TotalGenerated[yard] = TotalGenerated.TryGetValue(yard, out int tg) ? tg + 1 : 1;
+            if (Controllers.TryGetValue(yard, out var ctl) && ctl != null) InitialSpawnRules.OnAttempt(ctl, true);
         }
 
         private static int EffectiveChainCount(string yard, StationProceduralJobsController ctl)

@@ -106,6 +106,8 @@ namespace PersistentJobsRework
             {
                 int awake = Math.Max(0, fr.TotalCars - fr.FrozenCount);
                 sb.Append(Loc.F("ov_cars", fr.TotalCars, fr.TotalSets, fr.FrozenCount, awake)).Append('\n');
+                sb.Append(Loc.F("ov_jobs", JobCounts.Available, JobCounts.Taken, JobCounts.Shunting)).Append('\n');
+                if (Main.Settings.DeepSleep) sb.Append(Loc.F("ov_deep", fr.DeepCount, Main.Settings.DeepSleepDistance.ToString("0"))).Append('\n');
                 sb.Append(Loc.F("ov_scan", fr.LastScanCpuMs.ToString("F1"), Loc.T(fr.IsRunning ? "ov_on" : "ov_paused")));
                 if (Main.Settings.DebugIgnoreDistance) sb.Append("  <color=yellow>[ignore distance]</color>");
                 if (Main.Settings.FreezeLevel2) sb.Append("  <color=yellow>[level 2]</color>");
