@@ -1,6 +1,6 @@
 {
 	"Id": "PersistentJobsRework",
-	"Version": "1.00.00",
+	"Version": "1.01.00",
 	"DisplayName": "PersistentJobsRework",
 	"Author": "CJ187",
 	"EntryMethod": "PersistentJobsRework.Main.Load",
